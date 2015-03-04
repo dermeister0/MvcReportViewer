@@ -15,7 +15,7 @@ namespace MvcReportViewer
 
         protected ReportViewer ReportViewer;
 
-        protected void Page_Load(object sender, EventArgs e)
+        protected virtual void Page_Load(object sender, EventArgs e)
         {
             ShopReport();
         }
@@ -93,7 +93,7 @@ namespace MvcReportViewer
 
             if (disableRedirect)
             {
-                return false;
+                return true;
             }
 
             var errorPage = ConfigurationManager.AppSettings[WebConfigSettings.ErrorPage];
