@@ -37,7 +37,11 @@ namespace MvcReportViewer
                     parameters.ControlSettings.Height == null ? "false" : "true");
                 ClientScript.RegisterStartupScript(GetType(), "IsHeightChangedJS", hasHeightChangedScript);
 
-                ReportViewer.ReportError += OnReportError;
+                ReportViewer.ReportError += (sender, e) =>
+                {
+                    RedirectToErrorPage(e.Exception);
+                    e.Handled = true;
+                };
                 ReportViewer.Initialize(parameters);
 
                 RegisterJavaScriptApi();
@@ -52,10 +56,14 @@ namespace MvcReportViewer
             }
         }
 
-        private void OnReportError(object sender, ReportErrorEventArgs e)
+        /// <summary>
+        /// Allows to implement custom error handling.
+        /// </summary>
+        /// <param name="exception"></param>
+        /// <param name="disableRedirect"></param>
+        protected virtual void OnReportError(Exception exception, out bool disableRedirect)
         {
-            RedirectToErrorPage(e.Exception);
-            e.Handled = true;
+            disableRedirect = false;
         }
 
         private void RegisterJavaScriptApi()
@@ -79,6 +87,14 @@ namespace MvcReportViewer
         private bool RedirectToErrorPage(Exception exception)
         {
             Trace.Warn("MvcReportViewer", exception.Message);
+
+            bool disableRedirect;
+            OnReportError(exception, out disableRedirect);
+
+            if (disableRedirect)
+            {
+                return false;
+            }
 
             var errorPage = ConfigurationManager.AppSettings[WebConfigSettings.ErrorPage];
             var showErrorPage = ConfigurationManager.AppSettings[WebConfigSettings.ShowErrorPage];
